@@ -2,14 +2,14 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <math.h>
-
+#include <second_preim_48_fillme.h>
 #define ROTL24_16(x) ((((x) << 16) ^ ((x) >> 8)) & 0xFFFFFF)
 #define ROTL24_3(x) ((((x) << 3) ^ ((x) >> 21)) & 0xFFFFFF)
 
 #define ROTL24_8(x) ((((x) << 8) ^ ((x) >> 16)) & 0xFFFFFF)
 #define ROTL24_21(x) ((((x) << 21) ^ ((x) >> 3)) & 0xFFFFFF)
 
-#define IV 0x010203040506ULL 
+#define IV 0x010203040506ULL
 
 void speck48_96(const uint32_t k[4], const uint32_t p[2], uint32_t c[2])
 {
@@ -102,11 +102,4 @@ void find_exp_mess(uint32_t m1[4], uint32_t m2[4])
 void attack(void)
 {
 	/* FILL ME */
-}
-
-int main()
-{
-	attack();
-
-	return 0;
 }
