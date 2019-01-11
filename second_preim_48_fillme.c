@@ -110,7 +110,7 @@ int test_inv_sp48(void){
  */
 uint64_t cs48_dm(const uint32_t m[4], const uint64_t h)
 {
-	uint32_t p[2]={(uint32_t)h, (uint32_t)(h>>32)};
+	uint32_t p[2]={(uint32_t)h&0xFFFFFF, (uint32_t)(h>>24)&0xFFFFFF};
 	uint32_t c[2];
 	uint64_t res;
 	speck48_96(m, p, c);
@@ -132,7 +132,7 @@ int test_cs48_dm(void){
 }
 
 /* assumes message length is fourlen * four blocks of 24 bits store over 32
- * fourlen is on 48 bits
+ * fourlen is on 48 bitscs48_dm(m,fp) == fp
  * simply add one block of padding with fourlen and zeros on higher pos */
 uint64_t hs48(const uint32_t *m, uint64_t fourlen, int padding, int verbose)
 {
@@ -162,13 +162,25 @@ uint64_t hs48(const uint32_t *m, uint64_t fourlen, int padding, int verbose)
 }
 
 /* Computes the unique fixed-point for cs48_dm for the message m */
-uint64_t get_cs48_dm_fp(uint32_t m[4])
-{
-	/* FILL ME */
+uint64_t get_cs48_dm_fp(uint32_t m[4]){
+	uint32_t fixed_point[2];
+	uint32_t cipher[2]={0x00, 0x00};
+	speck48_96_inv(m, cipher, fixed_point);
+	uint64_t h;
+	h=fixed_point[1];
+	h=h<<24;
+	h+=fixed_point[0];
+	return h;
 }
 
 int test_cs48_dm_fp(void){
-
+	uint32_t m[4] = {0x12, 0x34, 0x56, 0x78};
+	uint64_t fixed_point=get_cs48_dm_fp(m);
+	printf("FIXED POINT: \n");
+	printf("%" PRIx64 "\n", fixed_point);
+	uint64_t res=cs48_dm(m, fixed_point);
+	printf("RES CS48DM: \n");
+	printf("%" PRIx64 "\n", res);
 }
 
 /* Finds a two-block expandable message for hs48, using a fixed-point
@@ -188,5 +200,6 @@ void attack(void)
 int main(){
 	//test_sp48();
 	//test_inv_sp48();
-	test_cs48_dm();
+	//test_cs48_dm();
+	test_cs48_dm_fp();
 }
