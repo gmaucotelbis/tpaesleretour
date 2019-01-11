@@ -10,7 +10,7 @@
 void printtab(uint32_t* tab, int size){
   int i;
   for(i=0;i<size;i++){
-    printf(" %08x",tab[i]);
+    printf("\t%08x",tab[i]);
   }
   printf("\n");
 }
@@ -50,10 +50,13 @@ int test_sp48(void){
   uint32_t ciphertext[2] = {0xb6445d, 0x735e10};
 	uint32_t result[2];
 	speck48_96(key, plaintext, result);
+	printf("\tResult\n");
 	printtab(result, 2);
-	printf("-----------Expected-------------\n");
+	printf("\n\tExpected\n");
 	printtab(ciphertext, 2);
-	return 1;
+	if(result[0]==ciphertext[0] && result[1]==ciphertext[1])
+		return 1;
+	return 0;
 }
 
 /* the inverse cipher */
@@ -82,6 +85,7 @@ void speck48_96_inv(const uint32_t k[4], const uint32_t c[2], uint32_t p[2])
 		p[0]=ROTL24_21(p[0]^p[1]);
 		p[1]=ROTL24_8(((p[1]^rk[i])-p[0])&0xFFFFFF);
 	}
+
 	return;
 }
 
@@ -91,16 +95,18 @@ int test_inv_sp48(void){
   uint32_t ciphertext[2] = {0xb6445d, 0x735e10};
 	uint32_t result[2];
 	speck48_96(key, plaintext, result);
-	printf("-----------Plaintext-------------\n");
+	printf("\tPlaintext\n");
 	printtab(plaintext, 2);
-	printf("-----------Ciphered-------------\n");
+	printf("\n\tCiphered\n");
 	printtab(result, 2);
-	printf("-----------(Expected)-------------\n");
+	printf("\n\tExpected\n");
 	printtab(ciphertext, 2);
-	printf("-----------Inversion-------------\n");
+	printf("\n\tInversion\n");
 	speck48_96_inv(key, ciphertext, result);
 	printtab(result, 2);
-	return 1;
+	if(plaintext[0]==result[0] && plaintext[1]==result[1])
+		return 1;
+	return 0;
 }
 
 /* The Davies-Meyer compression function based on speck48_96,
@@ -124,11 +130,14 @@ int test_cs48_dm(void){
 	uint64_t expected = 0x7FDD5A6EB248ULL;
 	uint32_t m[4] = {0x00, 0x00, 0x00, 0x00};
 	uint64_t h = 0;
-	uint64_t result;
-
-	printf("%" PRIx64 "\n", cs48_dm(m, h));
-	printf("\n-----------(Expected)-------------\n");
-	printf("%" PRIx64 "\n", expected);
+	uint64_t result =  cs48_dm(m, h);
+	printf("\tResult\n");
+	printf("\t%" PRIx64 "\n", result);
+	printf("\n\tExpected\n");
+	printf("\t%" PRIx64 "\n", expected);
+	if(result==expected)
+		return 1;
+	return 0;
 }
 
 /* assumes message length is fourlen * four blocks of 24 bits store over 32
@@ -137,7 +146,7 @@ int test_cs48_dm(void){
 uint64_t hs48(const uint32_t *m, uint64_t fourlen, int padding, int verbose)
 {
 	uint64_t h = IV;
-	uint32_t *mp = m;
+	const uint32_t *mp = m;
 
 	for (uint64_t i = 0; i < fourlen; i++)
 	{
@@ -176,11 +185,14 @@ uint64_t get_cs48_dm_fp(uint32_t m[4]){
 int test_cs48_dm_fp(void){
 	uint32_t m[4] = {0x12, 0x34, 0x56, 0x78};
 	uint64_t fixed_point=get_cs48_dm_fp(m);
-	printf("FIXED POINT: \n");
-	printf("%" PRIx64 "\n", fixed_point);
+	printf("\tFIXED POINT: \n");
+	printf("\t%" PRIx64 "\n", fixed_point);
 	uint64_t res=cs48_dm(m, fixed_point);
-	printf("RES CS48DM: \n");
-	printf("%" PRIx64 "\n", res);
+	printf("\tRES CS48DM: \n");
+	printf("\t%" PRIx64 "\n", res);
+	if(res==fixed_point)
+		return 1;
+	return 0;
 }
 
 /* Finds a two-block expandable message for hs48, using a fixed-point
@@ -195,11 +207,4 @@ void find_exp_mess(uint32_t m1[4], uint32_t m2[4])
 void attack(void)
 {
 	/* FILL ME */
-}
-
-int main(){
-	//test_sp48();
-	//test_inv_sp48();
-	//test_cs48_dm();
-	test_cs48_dm_fp();
 }
