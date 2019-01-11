@@ -1,8 +1,18 @@
 #include "second_preim_48_fillme.h"
 
-int main(){
-  uint8_t key[12]= {0x1a, 0x19, 0x18, 0x12, 0x11, 0x10, 0x0a, 0x09, 0x08, 0x02, 0x01, 0x00};
-  uint8_t plaintext[] = {0x6d, 0x20, 0x73, 0x69, 0x68, 0x74};
-  uint8_t ciphertext[] = {0x73, 0x5e, 0x10, 0xb6, 0x44, 0x5d};
+void printtab(uint32_t* tab, int size){
+  int i;
+  for(i=0;i<size;i++){
+    printf(" %08x",tab[i]);
+  }
+  printf("\n");
+}
 
+int main(){
+  uint32_t key[4]= {0x1a191, 0x121110, 0x0a0908, 0x020100};
+  uint32_t plaintext[2] = {0x6d2073, 0x696874};
+  uint32_t ciphertext[2] = {0x735e10, 0xb6445d};
+  //printtab(key, 4);
+  speck48ç
+  //speck48_96
 }

@@ -1,8 +1,4 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdint.h>
-#include <math.h>
-#include <second_preim_48_fillme.h>
+#include "second_preim_48_fillme.h"
 #define ROTL24_16(x) ((((x) << 16) ^ ((x) >> 8)) & 0xFFFFFF)
 #define ROTL24_3(x) ((((x) << 3) ^ ((x) >> 21)) & 0xFFFFFF)
 
@@ -10,6 +6,14 @@
 #define ROTL24_21(x) ((((x) << 21) ^ ((x) >> 3)) & 0xFFFFFF)
 
 #define IV 0x010203040506ULL
+
+void printtab(uint32_t* tab, int size){
+  int i;
+  for(i=0;i<size;i++){
+    printf(" %08x",tab[i]);
+  }
+  printf("\n");
+}
 
 void speck48_96(const uint32_t k[4], const uint32_t p[2], uint32_t c[2])
 {
@@ -33,16 +37,70 @@ void speck48_96(const uint32_t k[4], const uint32_t p[2], uint32_t c[2])
 
 	for (unsigned i = 0; i < 23; i++)
 	{
-		/* FILL ME */
+		c[1]=((ROTL24_16(c[1])+c[0])^rk[i]) & 0xFFFFFF;
+		c[0]=ROTL24_3(c[0])^c[1];
 	}
 
 	return;
 }
 
+int test_sp48(void){
+	uint32_t key[4]= {0x020100, 0x0a0908 , 0x121110, 0x1a1918};
+	uint32_t plaintext[2] = {0x696874, 0x6d2073};
+  uint32_t ciphertext[2] = {0xb6445d, 0x735e10};
+	uint32_t result[2];
+	speck48_96(key, plaintext, result);
+	printtab(result, 2);
+	printf("-----------Expected-------------\n");
+	printtab(ciphertext, 2);
+	return 1;
+}
+
 /* the inverse cipher */
 void speck48_96_inv(const uint32_t k[4], const uint32_t c[2], uint32_t p[2])
 {
-	/* FILL ME */
+	uint32_t rk[23];
+	uint32_t ell[3] = {k[1], k[2], k[3]};
+
+	rk[0] = k[0];
+
+	p[0] = c[0];
+	p[1] = c[1];
+
+	/* full key schedule */
+	for (unsigned i = 0; i < 22; i++)
+	{
+		uint32_t new_ell = ((ROTL24_16(ell[0]) + rk[i]) ^ i) & 0xFFFFFF;
+		rk[i+1] = ROTL24_3(rk[i]) ^ new_ell;
+		ell[0] = ell[1];
+		ell[1] = ell[2];
+		ell[2] = new_ell;
+	}
+
+	for (int i = 22; i >= 0; i--)
+	{
+		p[0]=ROTL24_21(p[0]^p[1]);
+		p[1]=ROTL24_8(((p[1]^rk[i])-p[0])&0xFFFFFF);
+	}
+	return;
+}
+
+int test_inv_sp48(void){
+	uint32_t key[4]= {0x020100, 0x0a0908 , 0x121110, 0x1a1918};
+	uint32_t plaintext[2] = {0x696874, 0x6d2073};
+  uint32_t ciphertext[2] = {0xb6445d, 0x735e10};
+	uint32_t result[2];
+	speck48_96(key, plaintext, result);
+	printf("-----------Plaintext-------------\n");
+	printtab(plaintext, 2);
+	printf("-----------Ciphered-------------\n");
+	printtab(result, 2);
+	printf("-----------(Expected)-------------\n");
+	printtab(ciphertext, 2);
+	printf("-----------Inversion-------------\n");
+	speck48_96_inv(key, ciphertext, result);
+	printtab(result, 2);
+	return 1;
 }
 
 /* The Davies-Meyer compression function based on speck48_96,
@@ -52,7 +110,25 @@ void speck48_96_inv(const uint32_t k[4], const uint32_t c[2], uint32_t p[2])
  */
 uint64_t cs48_dm(const uint32_t m[4], const uint64_t h)
 {
-	/* FILL ME */
+	uint32_t p[2]={(uint32_t)h, (uint32_t)(h>>32)};
+	uint32_t c[2];
+	uint64_t res;
+	speck48_96(m, p, c);
+	res=c[0];
+	res=res<<24;
+	res+=c[1];
+	return res^h;
+}
+
+int test_cs48_dm(void){
+	uint64_t expected = 0x7FDD5A6EB248ULL;
+	uint32_t m[4] = {0x00, 0x00, 0x00, 0x00};
+	uint64_t h = 0;
+	uint64_t result;
+
+	printf("%" PRIx64 "\n", cs48_dm(m, h));
+	printf("\n-----------(Expected)-------------\n");
+	printf("%" PRIx64 "\n", expected);
 }
 
 /* assumes message length is fourlen * four blocks of 24 bits store over 32
@@ -91,6 +167,10 @@ uint64_t get_cs48_dm_fp(uint32_t m[4])
 	/* FILL ME */
 }
 
+int test_cs48_dm_fp(void){
+
+}
+
 /* Finds a two-block expandable message for hs48, using a fixed-point
  * That is, computes m1, m2 s.t. hs48_nopad(m1||m2) = hs48_nopad(m1||m2^*),
  * where hs48_nopad is hs48 with no padding */
@@ -99,7 +179,14 @@ void find_exp_mess(uint32_t m1[4], uint32_t m2[4])
 	/* FILL ME */
 }
 
+
 void attack(void)
 {
 	/* FILL ME */
+}
+
+int main(){
+	//test_sp48();
+	//test_inv_sp48();
+	test_cs48_dm();
 }

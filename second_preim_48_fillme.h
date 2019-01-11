@@ -1,3 +1,10 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdint.h>
+#include <math.h>
+#include <unistd.h>
+#include <inttypes.h>
+
 void speck48_96(const uint32_t k[4], const uint32_t p[2], uint32_t c[2]);
 void speck48_96_inv(const uint32_t k[4], const uint32_t c[2], uint32_t p[2]);
 uint64_t cs48_dm(const uint32_t m[4], const uint64_t h);
