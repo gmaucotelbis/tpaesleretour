@@ -1,4 +1,5 @@
 #include "second_preim_48_fillme.h"
+
 #define ROTL24_16(x) ((((x) << 16) ^ ((x) >> 8)) & 0xFFFFFF)
 #define ROTL24_3(x) ((((x) << 3) ^ ((x) >> 21)) & 0xFFFFFF)
 
@@ -13,6 +14,20 @@ void printtab(uint32_t* tab, int size){
     printf("\t%08x",tab[i]);
   }
   printf("\n");
+}
+
+void free_tree(struct node* n){
+  int i = 0;
+  if(n){
+    if(n->l){
+      while(i<16){
+        free_tree(n->l[i]);
+        i++;
+      }
+      free(n->l);
+    }
+    free(n);
+  }
 }
 
 void speck48_96(const uint32_t k[4], const uint32_t p[2], uint32_t c[2])
@@ -198,9 +213,70 @@ int test_cs48_dm_fp(void){
 /* Finds a two-block expandable message for hs48, using a fixed-point
  * That is, computes m1, m2 s.t. hs48_nopad(m1||m2) = hs48_nopad(m1||m2^*),
  * where hs48_nopad is hs48 with no padding */
-void find_exp_mess(uint32_t m1[4], uint32_t m2[4])
-{
-	/* FILL ME */
+void find_exp_mess(uint32_t m1[4], uint32_t m2[4]){
+  struct node* root = calloc(1,sizeof(struct node));
+  struct node* f;
+
+  uint64_t hin = 0;
+  uint32_t m1r[4], m2r[4];
+  uint64_t m2_0, m2_1, m1_0, m1_1, hash;
+  __my_little_xoshiro256starstar_unseeded_init();
+  for (uint32_t i = 0; i<pow(2,22); i++){
+    m1_0 = xoshiro256starstar_random();
+    m1_1 = xoshiro256starstar_random();
+    m1r[0] =m1_0&0xFFFFFF;
+    m1r[1] =(m1_0>>24)&0xFFFFFF;
+    m1r[2] =m1_1&0xFFFFFF;
+    m1r[3] =(m1_1>>24)&0xFFFFFF;
+
+    hash  = hs48(m1r,1,0,0);
+    f = root;
+    for(size_t j = 0; j<12; j++){
+      uint8_t valHexa = (((hash<<4*j))>>44)&0xF;
+      if(f->l==NULL)
+        f->l= calloc(16,sizeof(struct node*));
+
+      if(f->l[valHexa]==NULL)
+        f->l[valHexa] = calloc(1,sizeof(struct node*));
+
+      f = f->l[valHexa];
+      if(j==11){
+        f->preimage = malloc(4*sizeof(uint32_t));
+        f->preimage[0]=m1[0];
+        f->preimage[1]=m1[1];
+        f->preimage[2]=m1[2];
+        f->preimage[3]=m1[3];
+      }
+    }
+  }
+  __my_little_xoshiro256starstar_unseeded_init();
+  for (uint64_t i = 0; i < pow(2,26); i++){
+    m2_0 = xoshiro256starstar_random();
+    m2_1 = xoshiro256starstar_random();
+    m2r[0] =m2_0&0xFFFFFF;
+    m2r[1] =(m2_0>>24)&0xFFFFFF;
+    m2r[2] =m2_1&0xFFFFFF;
+    m2r[3] =(m2_1>>24)&0xFFFFFF;
+    uint64_t fp = get_cs48_dm_fp(m2r);
+    f = root;
+    int find=0;
+    for(size_t j = 0; j<12; j++){
+      uint8_t valHexa = (((fp<<4*j))>>44)&0xF;
+      if(f->l!=NULL)
+        if(f->l[valHexa]!=NULL){
+          find++;
+          f = f->l[valHexa];
+        }else{
+          break;
+        }
+    }
+
+    if(find==11){
+      printf("FIND\n");
+      //free_tree(root);
+      return;
+    }
+  }
 }
 
 

@@ -1,12 +1,13 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdint.h>
-#include <math.h>
-#include <unistd.h>
-#include <inttypes.h>
+#include "xoshiro256starstar.h"
 #define RED     "\033[31m"      /* Red */
 #define GREEN   "\033[32m"      /* Green */
 #define RESET   "\033[0m"
+
+struct node
+{
+  struct node **l;
+  uint32_t *preimage;
+};
 
 void printtab(uint32_t* tab, int size);
 void speck48_96(const uint32_t k[4], const uint32_t p[2], uint32_t c[2]);
