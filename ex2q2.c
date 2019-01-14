@@ -8,7 +8,6 @@ int main(int argc, char*argv[]){
     ram=atoi(argv[1]);
   }
   printf(MAGENTA"\n[EXERCICE 2 QUESTION 2]\n"RESET);
-  for(int i = 0; i < 10; i++)
-    attack(ram);
+  attack(ram);
   return 0;
 }

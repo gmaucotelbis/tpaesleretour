@@ -16,6 +16,20 @@ void printtab(uint32_t* tab, int size){
   printf("\n");
 }
 
+void free_tree_attack(struct node_attack* n){
+  int i = 0;
+  if(n){
+    if(n->l){
+      while(i<16){
+        free_tree_attack(n->l[i]);
+        i++;
+      }
+      free(n->l);
+    }
+    free(n);
+  }
+}
+
 void free_tree(struct node* n){
   int i = 0;
   if(n){
@@ -221,7 +235,7 @@ void find_exp_mess(uint32_t m1[4], uint32_t m2[4], int ram){
   uint32_t m1r[4], m2r[4];
   uint64_t m2_0, m2_1, m1_0, m1_1, hash;
   __my_little_xoshiro256starstar_unseeded_init();
-  for (uint64_t i = 0; i< 5800000; i++){
+  for (uint64_t i = 0; i< (1<<ram); i++){
     m1_0 = xoshiro256starstar_random();
     m1_1 = xoshiro256starstar_random();
     m1r[0] =m1_0&0xFFFFFF;
@@ -340,7 +354,7 @@ void attack(int ram)
   double time_spent = (double)(end - begin) / CLOCKS_PER_SEC;
   printf("%s%f\n","TIME EXPANDABLE: ", time_spent);
   begin = clock();
-  struct node_attack* root = calloc(1,sizeof(struct node_attack));
+  struct node_attack* root = calloc(1,sizeof(struct node_attack*));
   struct node_attack* f;
 
   //On calcule et stock les différents hash possible pour le long message mess...
@@ -366,6 +380,7 @@ void attack(int ram)
   }
 
   uint64_t m2_0, m2_1;
+  uint32_t nb_block;
   __my_little_xoshiro256starstar_unseeded_init();
   for (uint64_t i = 0; i < (1UL<<48); i++){
     f = root;
@@ -393,9 +408,52 @@ void attack(int ram)
     }
     if(find==12){
       printf("FIND_ATTACK\n");
+      nb_block = f->nb_block;
       end = clock();
       time_spent = (double)(end - begin) / CLOCKS_PER_SEC;
       printf("%s%f\n","TIME COL: ", time_spent);
+      free_tree_attack(root);
+      uint32_t *base_m = malloc(sizeof(uint32_t)*(pow(2,18))*4);
+
+      for (int i = 0; i < (1 << 20); i+=4)
+      {
+        base_m[i + 0] = i;
+        base_m[i + 1] = 0;
+        base_m[i + 2] = 0;
+        base_m[i + 3] = 0;
+      }
+      h = hs48(base_m,pow(2,18),1,0);
+      printf("%s\n","HASH OF THE MESSAGE TO FIND" );
+      printf("\t%" PRIx64 "\n",h);
+      printf("%s\n","CREATING THE SECOND MESSAGE..." );
+      uint32_t *second_m = malloc(sizeof(uint32_t)*(pow(2,18))*4);
+
+      //ADD THE MESSAGE
+      for (int i = 0; i < 4; i+=1)
+        second_m[i] = m1[i];
+
+      //ADD nb_block FIXED POINT
+      for(int i=1; i<nb_block; i++){
+        second_m[i*4] = fp[0];
+        second_m[i*4+1] = fp[1];
+        second_m[i*4+2] = fp[2];
+        second_m[i*4+3] = fp[3];
+      }
+
+      //ADD THE REMAINING OF THE MESSAGE
+      for (int i = nb_block; i < (1 << 20); i+=4){
+        second_m[i + 0] = i;
+        second_m[i + 1] = 0;
+        second_m[i + 2] = 0;
+        second_m[i + 3] = 0;
+      }
+
+      free(base_m);
+      h = hs48(second_m,pow(2,18),1,0);
+      printf("%s\n","HASH OF THE SECOND MESSAGE" );
+      printf("\t%" PRIx64 "\n",h);
+      free(second_m);
+
       return;
     }
   }
