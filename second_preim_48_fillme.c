@@ -66,17 +66,19 @@ void speck48_96(const uint32_t k[4], const uint32_t p[2], uint32_t c[2])
 
 	for (unsigned i = 0; i < 23; i++)
 	{
-		c[1]=((ROTL24_16(c[1])+c[0])^rk[i]) & 0xFFFFFF;
-		c[0]=ROTL24_3(c[0])^c[1];
+		// c[1]=((ROTL24_16(c[1])+c[0])^rk[i]) & 0xFFFFFF;
+		// c[0]=ROTL24_3(c[0])^c[1];
+    c[0]=((ROTL24_16(c[0])+c[1])^rk[i]) & 0xFFFFFF;
+    c[1]=ROTL24_3(c[1])^c[0];
 	}
 
 	return;
 }
 
 int test_sp48(void){
-	uint32_t key[4]= {0x020100, 0x0a0908 , 0x121110, 0x1a1918};
-	uint32_t plaintext[2] = {0x696874, 0x6d2073};
-  uint32_t ciphertext[2] = {0xb6445d, 0x735e10};
+	uint32_t key[4]= {0x020100, 0x0a0908, 0x121110, 0x1a1918 };
+	uint32_t plaintext[2] = {0x6d2073, 0x696874};
+  uint32_t ciphertext[2] = {0x735e10, 0xb6445d};
 	uint32_t result[2];
 	speck48_96(key, plaintext, result);
 	printf("\tResult\n");
@@ -92,6 +94,7 @@ int test_sp48(void){
 void speck48_96_inv(const uint32_t k[4], const uint32_t c[2], uint32_t p[2])
 {
 	uint32_t rk[23];
+
 	uint32_t ell[3] = {k[1], k[2], k[3]};
 
 	rk[0] = k[0];
@@ -111,17 +114,17 @@ void speck48_96_inv(const uint32_t k[4], const uint32_t c[2], uint32_t p[2])
 
 	for (int i = 22; i >= 0; i--)
 	{
-		p[0]=ROTL24_21(p[0]^p[1]);
-		p[1]=ROTL24_8(((p[1]^rk[i])-p[0])&0xFFFFFF);
+		p[1]=ROTL24_21(p[1]^p[0]);
+		p[0]=ROTL24_8(((p[0]^rk[i])-p[1])&0xFFFFFF);
 	}
 
 	return;
 }
 
 int test_inv_sp48(void){
-	uint32_t key[4]= {0x020100, 0x0a0908 , 0x121110, 0x1a1918};
-	uint32_t plaintext[2] = {0x696874, 0x6d2073};
-  uint32_t ciphertext[2] = {0xb6445d, 0x735e10};
+	uint32_t key[4]= {0x020100, 0x0a0908, 0x121110, 0x1a1918};
+	uint32_t plaintext[2] = {0x6d2073, 0x696874};
+  uint32_t ciphertext[2] = {0x735e10, 0xb6445d};
 	uint32_t result[2];
 	speck48_96(key, plaintext, result);
 	printf("\tPlaintext\n");
@@ -147,18 +150,19 @@ uint64_t cs48_dm(const uint32_t m[4], const uint64_t h)
 {
 	uint32_t p[2]={(uint32_t)h&0xFFFFFF, (uint32_t)(h>>24)&0xFFFFFF};
 	uint32_t c[2];
-	uint64_t res;
 	speck48_96(m, p, c);
-	res=c[0];
-	res=res<<24;
-	res+=c[1];
-	return res^h;
+	uint32_t htab[2];
+  htab[1]=(uint32_t)(h>>24)&0xFFFFFF;
+  htab[0]=(uint32_t)(h&0xFFFFFF);
+  c[1]^=htab[1];
+  c[0]^=htab[0];
+	return ((uint64_t)c[1]<<24)+((uint64_t)c[0]);
 }
 
 int test_cs48_dm(void){
 	uint64_t expected = 0x7FDD5A6EB248ULL;
 	uint32_t m[4] = {0x00, 0x00, 0x00, 0x00};
-	uint64_t h = 0;
+	uint64_t h = 0x0;
 	uint64_t result =  cs48_dm(m, h);
 	printf("\tResult\n");
 	printf("\t%" PRIx64 "\n", result);
@@ -212,7 +216,7 @@ uint64_t get_cs48_dm_fp(uint32_t m[4]){
 }
 
 int test_cs48_dm_fp(void){
-	uint32_t m[4] = {0x12, 0x34, 0x56, 0x78};
+	uint32_t m[4] = {0x78, 0x56, 0x34, 0x12 };
 	uint64_t fixed_point=get_cs48_dm_fp(m);
 	printf("\tFIXED POINT: \n");
 	printf("\t%" PRIx64 "\n", fixed_point);
@@ -413,18 +417,18 @@ void attack(int ram)
       time_spent = (double)(end - begin) / CLOCKS_PER_SEC;
       printf("%s%f\n","TIME COL: ", time_spent);
       free_tree_attack(root);
-      uint32_t *base_m = malloc(sizeof(uint32_t)*(pow(2,18))*4);
-
-      for (int i = 0; i < (1 << 20); i+=4)
-      {
-        base_m[i + 0] = i;
-        base_m[i + 1] = 0;
-        base_m[i + 2] = 0;
-        base_m[i + 3] = 0;
-      }
-      h = hs48(base_m,pow(2,18),1,0);
-      printf("%s\n","HASH OF THE MESSAGE TO FIND" );
-      printf("\t%" PRIx64 "\n",h);
+      // uint32_t *base_m = malloc(sizeof(uint32_t)*(pow(2,18))*4);
+      //
+      // for (int i = 0; i < (1 << 20); i+=4)
+      // {
+      //   base_m[i + 0] = i;
+      //   base_m[i + 1] = 0;
+      //   base_m[i + 2] = 0;
+      //   base_m[i + 3] = 0;
+      // }
+      // h = hs48(base_m,pow(2,18),1,0);
+      // printf("%s\n","HASH OF THE MESSAGE TO FIND" );
+      // printf("\t%" PRIx64 "\n",h);
       printf("%s\n","CREATING THE SECOND MESSAGE..." );
       uint32_t *second_m = malloc(sizeof(uint32_t)*(pow(2,18))*4);
 
@@ -448,7 +452,7 @@ void attack(int ram)
         second_m[i + 3] = 0;
       }
 
-      free(base_m);
+//          free(base_m);
       h = hs48(second_m,pow(2,18),1,0);
       printf("%s\n","HASH OF THE SECOND MESSAGE" );
       printf("\t%" PRIx64 "\n",h);
