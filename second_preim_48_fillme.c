@@ -167,7 +167,7 @@ uint64_t hs48(const uint32_t *m, uint64_t fourlen, int padding, int verbose)
 	{
 		h = cs48_dm(mp, h);
 		if (verbose)
-			printf("@%llu : %06X %06X %06X %06X => %06llX\n", i, mp[0], mp[1], mp[2], mp[3], h);
+			printf("@%lu : %06X %06X %06X %06X => %06lX\n", i, mp[0], mp[1], mp[2], mp[3], h);
 		mp += 4;
 	}
 	if (padding)
@@ -179,7 +179,7 @@ uint64_t hs48(const uint32_t *m, uint64_t fourlen, int padding, int verbose)
 		pad[3] = 0;
 		h = cs48_dm(pad, h);
 		if (verbose)
-			printf("@%llu : %06X %06X %06X %06X => %06llX\n", fourlen, pad[0], pad[1], pad[2], pad[3], h);
+			printf("@%lu : %06X %06X %06X %06X => %06lX\n", fourlen, pad[0], pad[1], pad[2], pad[3], h);
 	}
 
 	return h;
@@ -213,15 +213,15 @@ int test_cs48_dm_fp(void){
 /* Finds a two-block expandable message for hs48, using a fixed-point
  * That is, computes m1, m2 s.t. hs48_nopad(m1||m2) = hs48_nopad(m1||m2^*),
  * where hs48_nopad is hs48 with no padding */
-void find_exp_mess(uint32_t m1[4], uint32_t m2[4]){
-  struct node* root = calloc(1,sizeof(struct node));
+void find_exp_mess(uint32_t m1[4], uint32_t m2[4], int ram){
+  struct node* root = calloc(1,sizeof(struct node*));
   struct node* f;
 
   uint64_t hin = 0;
   uint32_t m1r[4], m2r[4];
   uint64_t m2_0, m2_1, m1_0, m1_1, hash;
   __my_little_xoshiro256starstar_unseeded_init();
-  for (uint32_t i = 0; i<pow(2,22); i++){
+  for (uint64_t i = 0; i< 5800000; i++){
     m1_0 = xoshiro256starstar_random();
     m1_1 = xoshiro256starstar_random();
     m1r[0] =m1_0&0xFFFFFF;
@@ -241,16 +241,16 @@ void find_exp_mess(uint32_t m1[4], uint32_t m2[4]){
 
       f = f->l[valHexa];
       if(j==11){
-        f->preimage = malloc(4*sizeof(uint32_t));
-        f->preimage[0]=m1[0];
-        f->preimage[1]=m1[1];
-        f->preimage[2]=m1[2];
-        f->preimage[3]=m1[3];
+        f->preimage = calloc(4,sizeof(uint32_t));
+        f->preimage[0]=m1r[0];
+        f->preimage[1]=m1r[1];
+        f->preimage[2]=m1r[2];
+        f->preimage[3]=m1r[3];
       }
     }
   }
   __my_little_xoshiro256starstar_unseeded_init();
-  for (uint64_t i = 0; i < pow(2,26); i++){
+  for (uint64_t i = 0; i < 1<<(48-ram); i++){
     m2_0 = xoshiro256starstar_random();
     m2_1 = xoshiro256starstar_random();
     m2r[0] =m2_0&0xFFFFFF;
@@ -262,25 +262,141 @@ void find_exp_mess(uint32_t m1[4], uint32_t m2[4]){
     int find=0;
     for(size_t j = 0; j<12; j++){
       uint8_t valHexa = (((fp<<4*j))>>44)&0xF;
-      if(f->l!=NULL)
+      if(f->l!=NULL){
+        if(f->l[valHexa]!=NULL){
+          find++;
+          f=f->l[valHexa];
+        }else{
+          break;
+        }
+      }else{
+        break;
+      }
+    }
+
+    if(find==12){
+      for(int i=0; i<4; i++){
+        m1[i]=f->preimage[i];
+        m2[i]=m2r[i];
+      }
+      free_tree(root);
+      return;
+    }
+  }
+}
+
+int test_em(int ram){
+  uint32_t m1[4];
+  uint32_t m2[4];
+  find_exp_mess(m1,m2,ram);
+  printf("\tMESSAGE: \n");
+  printtab(m1,4);
+  printf("\tFIXED POINT: \n");
+  printtab(m2,4);
+  printf("\tHASH OF MESSAGE: \n");
+  uint64_t h1 = hs48(m1,1,0,0);
+  printf("\t%" PRIx64 "\n",h1);
+
+  srand((unsigned) time(NULL));
+  int nb_fixed_point = rand() % 500;
+  printf("\tHASH OF MESSAGE WITH %d(random) FIXED POINT: \n",nb_fixed_point);
+  uint32_t *m = malloc((nb_fixed_point+1)*4*sizeof(uint32_t));
+  for(int i = 0; i < 4; i++)
+    m[i]=m1[i];
+  for(int i = 1; i < nb_fixed_point+1; i++){
+    m[i*4]=m2[0];
+    m[i*4+1]=m2[1];
+    m[i*4+2]=m2[2];
+    m[i*4+3]=m2[3];
+  }
+
+  uint64_t h2 = hs48(m,nb_fixed_point+1,0,0);
+  printf("\t%" PRIx64 "\n",h2);
+  free(m);
+  if(h1==h2)
+    return 1;
+  else
+    return 0;
+}
+
+/*
+We have a message mess.
+
+First, find an expandable message (m1, fp)
+So, we can construct a message m2 s.t h(m1||fp||fp||fp) == h(m1)
+
+Then, find a collision s.t h(cm) == h(mess_X) with X an index of submessage mess
+
+Finally, forge a new message nm s.t m1||(fp * X-1)||cm||mess_X||mess_X+1||mess
+*/
+void attack(int ram)
+{
+  uint64_t hash  = 0xFF3FD9D23B89;
+  uint64_t h = IV;
+  uint32_t m1[4], fp[4], mess[4];
+  clock_t begin = clock();
+  find_exp_mess(m1,fp,ram);
+  clock_t end = clock();
+  double time_spent = (double)(end - begin) / CLOCKS_PER_SEC;
+  printf("%s%f\n","TIME EXPANDABLE: ", time_spent);
+  begin = clock();
+  struct node_attack* root = calloc(1,sizeof(struct node_attack));
+  struct node_attack* f;
+
+  //On calcule et stock les différents hash possible pour le long message mess...
+  for (int i = 0; i < (1 << 20); i+=4){
+    mess[0] = i;
+    mess[1] = 0;
+    mess[2] = 0;
+    mess[3] = 0;
+    h=cs48_dm(mess, h);
+    f = root;
+    for(size_t j = 0; j<12; j++){
+      uint8_t valHexa = (((h<<4*j))>>44)&0xF;
+      if(f->l==NULL)
+        f->l= calloc(16,sizeof(struct node_attack*));
+
+      if(f->l[valHexa]==NULL)
+        f->l[valHexa] = calloc(1,sizeof(struct node_attack*));
+
+      f = f->l[valHexa];
+      if(j==11)
+        f->nb_block = i;
+    }
+  }
+
+  uint64_t m2_0, m2_1;
+  __my_little_xoshiro256starstar_unseeded_init();
+  for (uint64_t i = 0; i < (1UL<<48); i++){
+    f = root;
+    m2_0 = xoshiro256starstar_random();
+    m2_1 = xoshiro256starstar_random();
+    mess[0] =m2_0&0xFFFFFF;
+    mess[1] =(m2_0>>24)&0xFFFFFF;
+    mess[2] =m2_1&0xFFFFFF;
+    mess[3] =(m2_1>>24)&0xFFFFFF;
+
+    h=cs48_dm(mess, get_cs48_dm_fp(fp));
+    int find=0;
+    for(size_t j = 0; j<12; j++){
+      uint8_t valHexa = (((h<<4*j))>>44)&0xF;
+      if(f->l!=NULL){
         if(f->l[valHexa]!=NULL){
           find++;
           f = f->l[valHexa];
         }else{
           break;
         }
+      }else{
+        break;
+      }
     }
-
-    if(find==11){
-      printf("FIND\n");
-      //free_tree(root);
+    if(find==12){
+      printf("FIND_ATTACK\n");
+      end = clock();
+      time_spent = (double)(end - begin) / CLOCKS_PER_SEC;
+      printf("%s%f\n","TIME COL: ", time_spent);
       return;
     }
   }
-}
-
-
-void attack(void)
-{
-	/* FILL ME */
 }

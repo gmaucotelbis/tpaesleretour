@@ -4,6 +4,7 @@
 #include <math.h>
 #include <unistd.h>
 #include <inttypes.h>
+#include <time.h>
 
 static int __my_little_init_was_done = 0;
 static uint64_t __my_little_xoshiro256starstar__s[4];
