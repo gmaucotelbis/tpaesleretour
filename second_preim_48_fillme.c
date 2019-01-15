@@ -379,7 +379,7 @@ void attack(int ram)
 
       f = f->l[valHexa];
       if(j==11)
-        f->nb_block = i;
+        f->nb_block = i/4;
     }
   }
 
@@ -410,31 +410,29 @@ void attack(int ram)
         break;
       }
     }
-    if(find==12){
+   if(find==12){
       printf("FIND_ATTACK\n");
       nb_block = f->nb_block;
       end = clock();
       time_spent = (double)(end - begin) / CLOCKS_PER_SEC;
       printf("%s%f\n","TIME COL: ", time_spent);
       free_tree_attack(root);
-      // uint32_t *base_m = malloc(sizeof(uint32_t)*(pow(2,18))*4);
-      //
-      // for (int i = 0; i < (1 << 20); i+=4)
-      // {
-      //   base_m[i + 0] = i;
-      //   base_m[i + 1] = 0;
-      //   base_m[i + 2] = 0;
-      //   base_m[i + 3] = 0;
-      // }
-      // h = hs48(base_m,pow(2,18),1,0);
-      // printf("%s\n","HASH OF THE MESSAGE TO FIND" );
-      // printf("\t%" PRIx64 "\n",h);
-      printf("%s\n","CREATING THE SECOND MESSAGE..." );
+      printf("%s\n","HASH OF THE MESSAGE TO FIND" );
+
+      printf("\t%" PRIx64 "\n",0xFF3FD9D23B89);
       uint32_t *second_m = malloc(sizeof(uint32_t)*(pow(2,18))*4);
 
+      printf("FIND A COLLISION AT BLOCK NUMBER %d HASH -> %"PRIx64" \n",nb_block, h);
       //ADD THE MESSAGE
-      for (int i = 0; i < 4; i+=1)
+      for (int i = 0; i < 4; i++)
         second_m[i] = m1[i];
+
+      printf("\n%s\n","CREATING THE SECOND MESSAGE..." );
+
+      printf("FIRST BLOCK : \t\t\t" );
+      printtab(second_m,4);
+      h = hs48(second_m,1,0,0);
+      printf("HASH OF ALL BLOCKS (WITHOUT LEN) -> \t%" PRIx64 "\n",h);
 
       //ADD nb_block FIXED POINT
       for(int i=1; i<nb_block; i++){
@@ -444,19 +442,39 @@ void attack(int ram)
         second_m[i*4+3] = fp[3];
       }
 
+      printf("ADD %d FIXED POINT BLOCKS : \t", nb_block-1);
+      printtab(fp,4);
+      h = hs48(second_m,nb_block,0,0);
+      printf("HASH OF ALL BLOCKS (WITHOUT LEN) -> \t%" PRIx64 "\n",h);
+
+      second_m[nb_block*4] = mess[0];
+      second_m[nb_block*4+1] = mess[1];
+      second_m[nb_block*4+2] = mess[2];
+      second_m[nb_block*4+3] = mess[3];
+
+      printf("ADD THE COLLIDE MESSAGE : \t");
+      printtab(mess,4);
+      h = hs48(second_m,nb_block+1,0,0);
+      printf("HASH OF ALL BLOCKS (WITHOUT LEN) -> \t%" PRIx64 "\n",h);
+
       //ADD THE REMAINING OF THE MESSAGE
-      for (int i = nb_block; i < (1 << 20); i+=4){
+      for (int i = (nb_block+1)*4; i < (1 << 20); i+=4){
         second_m[i + 0] = i;
         second_m[i + 1] = 0;
         second_m[i + 2] = 0;
         second_m[i + 3] = 0;
       }
 
-//          free(base_m);
-      h = hs48(second_m,pow(2,18),1,0);
-      printf("%s\n","HASH OF THE SECOND MESSAGE" );
-      printf("\t%" PRIx64 "\n",h);
+      printf("ADD THE REST OF THE MESSAGE : (%lu blocks) \n",(1<<18)-(nb_block+1));
+      h = hs48(second_m,(1<<18),1,0);
+      printf("HASH OF ALL BLOCKS (WITHOUT LEN) -> \t%" PRIx64 "\n",h);
+
       free(second_m);
+
+      if(h==0xFF3FD9D23B89)
+        printf(GREEN "\n\tEX2Q2 VALID.\n\n" RESET);
+      else
+        printf(RED "\n\tEX2Q2 FAIL.\n\n" RESET);
 
       return;
     }
