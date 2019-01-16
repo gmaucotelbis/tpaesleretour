@@ -252,10 +252,6 @@ void find_exp_mess(uint32_t m1[4], uint32_t m2[4]){
       }
     }
   }
-<<<<<<< HEAD
-  __my_little_xoshiro256starstar_unseeded_init();
-=======
->>>>>>> 878bfc87ff5d700ab719f02b4479d4eff095737d
   for (uint64_t i = 0; i < (1UL<<48); i++){
     m2_0 = xoshiro256starstar_random();
     m2_1 = xoshiro256starstar_random();
