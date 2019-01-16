@@ -30,4 +30,5 @@ uint64_t get_cs48_dm_fp(uint32_t m[4]);
 int test_cs48_dm_fp(void);
 void find_exp_mess(uint32_t m1[4], uint32_t m2[4]);
 void attack();
+void example_attack();
 int test_em();
