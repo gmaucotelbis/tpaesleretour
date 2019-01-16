@@ -11,6 +11,13 @@ struct node
   uint32_t *preimage;
 };
 
+struct node_attack
+{
+  struct node_attack **l;
+  uint32_t nb_block;
+};
+
+
 void printtab(uint32_t* tab, int size);
 void speck48_96(const uint32_t k[4], const uint32_t p[2], uint32_t c[2]);
 int test_sp48(void);

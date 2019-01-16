@@ -1,0 +1,118 @@
+second_preim_48_fillme.c: In function ‘example_attack’:
+second_preim_48_fillme.c:338:3: warning: excess elements in scalar initializer [enabled by default]
+   uint32_t collide_message={0x005069ac, 0x008059e2, 0x00195fc8, 0x005e076d};
+   ^
+second_preim_48_fillme.c:338:3: warning: (near initialization for ‘collide_message’) [enabled by default]
+second_preim_48_fillme.c:338:3: warning: excess elements in scalar initializer [enabled by default]
+second_preim_48_fillme.c:338:3: warning: (near initialization for ‘collide_message’) [enabled by default]
+second_preim_48_fillme.c:338:3: warning: excess elements in scalar initializer [enabled by default]
+second_preim_48_fillme.c:338:3: warning: (near initialization for ‘collide_message’) [enabled by default]
+[35m
+[EXERCICE 1 QUESTION 1]
+[0m	Result
+	00735e10	00b6445d
+
+	Expected
+	00735e10	00b6445d
+[32m
+	EX1Q1 VALID.
+
+[0msecond_preim_48_fillme.c: In function ‘example_attack’:
+second_preim_48_fillme.c:338:3: warning: excess elements in scalar initializer [enabled by default]
+   uint32_t collide_message={0x005069ac, 0x008059e2, 0x00195fc8, 0x005e076d};
+   ^
+second_preim_48_fillme.c:338:3: warning: (near initialization for ‘collide_message’) [enabled by default]
+second_preim_48_fillme.c:338:3: warning: excess elements in scalar initializer [enabled by default]
+second_preim_48_fillme.c:338:3: warning: (near initialization for ‘collide_message’) [enabled by default]
+second_preim_48_fillme.c:338:3: warning: excess elements in scalar initializer [enabled by default]
+second_preim_48_fillme.c:338:3: warning: (near initialization for ‘collide_message’) [enabled by default]
+[35m
+[EXERCICE 1 QUESTION 2]
+[0m	Plaintext
+	006d2073	00696874
+
+	Ciphered
+	00735e10	00b6445d
+
+	Expected
+	00735e10	00b6445d
+
+	Inversion
+	006d2073	00696874
+[32m
+	EX1Q2 VALID.
+
+[0msecond_preim_48_fillme.c: In function ‘example_attack’:
+second_preim_48_fillme.c:338:3: warning: excess elements in scalar initializer [enabled by default]
+   uint32_t collide_message={0x005069ac, 0x008059e2, 0x00195fc8, 0x005e076d};
+   ^
+second_preim_48_fillme.c:338:3: warning: (near initialization for ‘collide_message’) [enabled by default]
+second_preim_48_fillme.c:338:3: warning: excess elements in scalar initializer [enabled by default]
+second_preim_48_fillme.c:338:3: warning: (near initialization for ‘collide_message’) [enabled by default]
+second_preim_48_fillme.c:338:3: warning: excess elements in scalar initializer [enabled by default]
+second_preim_48_fillme.c:338:3: warning: (near initialization for ‘collide_message’) [enabled by default]
+[35m
+[EXERCICE 1 QUESTION 3]
+[0m	Result
+	7fdd5a6eb248
+
+	Expected
+	7fdd5a6eb248
+[32m
+	EX1Q3 VALID.
+
+[0msecond_preim_48_fillme.c: In function ‘example_attack’:
+second_preim_48_fillme.c:338:3: warning: excess elements in scalar initializer [enabled by default]
+   uint32_t collide_message={0x005069ac, 0x008059e2, 0x00195fc8, 0x005e076d};
+   ^
+second_preim_48_fillme.c:338:3: warning: (near initialization for ‘collide_message’) [enabled by default]
+second_preim_48_fillme.c:338:3: warning: excess elements in scalar initializer [enabled by default]
+second_preim_48_fillme.c:338:3: warning: (near initialization for ‘collide_message’) [enabled by default]
+second_preim_48_fillme.c:338:3: warning: excess elements in scalar initializer [enabled by default]
+second_preim_48_fillme.c:338:3: warning: (near initialization for ‘collide_message’) [enabled by default]
+[35m
+[EXERCICE 1 QUESTION 4]
+[0m	FIXED POINT: 
+	fb16d7e694a7
+	RES CS48DM: 
+	fb16d7e694a7
+[32m
+	EX1Q4 VALID.
+
+[0mgcc ex2q1.c -o ex2q1 second_preim_48_fillme.c xoshiro256starstar.c -std=c99 -O3
+second_preim_48_fillme.c: In function ‘example_attack’:
+second_preim_48_fillme.c:338:3: warning: excess elements in scalar initializer [enabled by default]
+   uint32_t collide_message={0x005069ac, 0x008059e2, 0x00195fc8, 0x005e076d};
+   ^
+second_preim_48_fillme.c:338:3: warning: (near initialization for ‘collide_message’) [enabled by default]
+second_preim_48_fillme.c:338:3: warning: excess elements in scalar initializer [enabled by default]
+second_preim_48_fillme.c:338:3: warning: (near initialization for ‘collide_message’) [enabled by default]
+second_preim_48_fillme.c:338:3: warning: excess elements in scalar initializer [enabled by default]
+second_preim_48_fillme.c:338:3: warning: (near initialization for ‘collide_message’) [enabled by default]
+./ex2q1
+[35m
+[EXERCICE 2 QUESTION 1]
+[0m	MESSAGE: 
+	0050c6d0	00c2a4c5	00845889	00d614fb
+	FIXED POINT: 
+	00899895	0093ba4c	006a14c1	0063f330
+	HASH OF MESSAGE: 
+	e451164999fd
+	HASH OF MESSAGE WITH 390(random) FIXED POINT: 
+	e451164999fd
+[32m
+	EX2Q1 VALID.
+
+[0mgcc ex2q2.c -o ex2q2 second_preim_48_fillme.c xoshiro256starstar.c -std=c99 -O3
+second_preim_48_fillme.c: In function ‘example_attack’:
+second_preim_48_fillme.c:338:3: warning: excess elements in scalar initializer [enabled by default]
+   uint32_t collide_message={0x005069ac, 0x008059e2, 0x00195fc8, 0x005e076d};
+   ^
+second_preim_48_fillme.c:338:3: warning: (near initialization for ‘collide_message’) [enabled by default]
+second_preim_48_fillme.c:338:3: warning: excess elements in scalar initializer [enabled by default]
+second_preim_48_fillme.c:338:3: warning: (near initialization for ‘collide_message’) [enabled by default]
+second_preim_48_fillme.c:338:3: warning: excess elements in scalar initializer [enabled by default]
+second_preim_48_fillme.c:338:3: warning: (near initialization for ‘collide_message’) [enabled by default]
+./ex2q2
+gmake: *** [ex2q2] Segmentation fault
+gmake: *** Deleting file `ex2q2'
