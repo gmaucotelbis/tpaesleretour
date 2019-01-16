@@ -268,7 +268,7 @@ void find_exp_mess(uint32_t m1[4], uint32_t m2[4], int ram){
     }
   }
   __my_little_xoshiro256starstar_unseeded_init();
-  for (uint64_t i = 0; i < 1<<(48-ram); i++){
+  for (uint64_t i = 0; i < (1UL<<48); i++){
     m2_0 = xoshiro256starstar_random();
     m2_1 = xoshiro256starstar_random();
     m2r[0] =m2_0&0xFFFFFF;
