@@ -298,6 +298,7 @@ void find_exp_mess(uint32_t m1[4], uint32_t m2[4]){
         m2[i]=m2r[i];
       }
       free_tree(root);
+      printf("Number of try: %lu\n",i);
       return;
     }
   }
