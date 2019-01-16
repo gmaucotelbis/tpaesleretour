@@ -252,10 +252,6 @@ void find_exp_mess(uint32_t m1[4], uint32_t m2[4]){
       }
     }
   }
-<<<<<<< HEAD
-  __my_little_xoshiro256starstar_unseeded_init();
-=======
->>>>>>> 878bfc87ff5d700ab719f02b4479d4eff095737d
   for (uint64_t i = 0; i < (1UL<<48); i++){
     m2_0 = xoshiro256starstar_random();
     m2_1 = xoshiro256starstar_random();
@@ -335,6 +331,13 @@ Then, find a collision s.t h(cm) == h(mess_X) with X an index of submessage mess
 
 Finally, forge a new message nm s.t m1||(fp * X-1)||cm||mess_X||mess_X+1||mess
 */
+
+void example_attack(){
+  uint32_t m1[4]={0x00f64bd9,	0x00e766ec,	0x009320c3, 0x0099f35b};
+  uint32_t fp[4]={0x00059467,	0x0058c365,	0x00e7f867,	0x0006a123};
+  uint32_t collide_message={0x005069ac,	0x008059e2,	0x00195fc8, 0x005e076d};
+}
+
 void attack(int ram)
 {
   uint64_t hash  = 0xFF3FD9D23B89;
