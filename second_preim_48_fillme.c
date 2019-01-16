@@ -335,7 +335,67 @@ Finally, forge a new message nm s.t m1||(fp * X-1)||cm||mess_X||mess_X+1||mess
 void example_attack(){
   uint32_t m1[4]={0x00f64bd9,	0x00e766ec,	0x009320c3, 0x0099f35b};
   uint32_t fp[4]={0x00059467,	0x0058c365,	0x00e7f867,	0x0006a123};
-  uint32_t collide_message={0x005069ac,	0x008059e2,	0x00195fc8, 0x005e076d};
+  uint32_t collide_message[4]={0x005069ac,	0x008059e2,	0x00195fc8, 0x005e076d};
+  uint64_t nb_block = 228363;
+  uint64_t h;
+  printf("%s\n","HASH OF THE MESSAGE TO FIND" );
+
+  printf("\t%" PRIx64 "\n",0xFF3FD9D23B89);
+  uint32_t *second_m = malloc(sizeof(uint32_t)*(pow(2,18))*4);
+
+  printf("FIND A COLLISION AT BLOCK NUMBER %d \n",nb_block);
+  //ADD THE MESSAGE
+  for (int i = 0; i < 4; i++)
+    second_m[i] = m1[i];
+
+  printf("\n%s\n","CREATING THE SECOND MESSAGE..." );
+
+  printf("FIRST BLOCK : \t\t\t" );
+  printtab(second_m,4);
+  h = hs48(second_m,1,0,0);
+  printf("HASH OF ALL BLOCKS (WITHOUT LEN) -> \t%" PRIx64 "\n",h);
+
+  //ADD nb_block FIXED POINT
+  for(int i=1; i<nb_block; i++){
+    second_m[i*4] = fp[0];
+    second_m[i*4+1] = fp[1];
+    second_m[i*4+2] = fp[2];
+    second_m[i*4+3] = fp[3];
+  }
+
+  printf("ADD %d FIXED POINT BLOCKS : \t", nb_block-1);
+  printtab(fp,4);
+  h = hs48(second_m,nb_block,0,0);
+  printf("HASH OF ALL BLOCKS (WITHOUT LEN) -> \t%" PRIx64 "\n",h);
+
+  second_m[nb_block*4] = collide_message[0];
+  second_m[nb_block*4+1] = collide_message[1];
+  second_m[nb_block*4+2] = collide_message[2];
+  second_m[nb_block*4+3] = collide_message[3];
+
+  printf("ADD THE COLLIDE MESSAGE : \t");
+  printtab(collide_message,4);
+  h = hs48(second_m,nb_block+1,0,0);
+  printf("HASH OF ALL BLOCKS (WITHOUT LEN) -> \t%" PRIx64 "\n",h);
+
+  //ADD THE REMAINING OF THE MESSAGE
+  for (int i = (nb_block+1)*4; i < (1 << 20); i+=4){
+    second_m[i + 0] = i;
+    second_m[i + 1] = 0;
+    second_m[i + 2] = 0;
+    second_m[i + 3] = 0;
+  }
+
+  printf("ADD THE REST OF THE MESSAGE : (%u blocks) \n",(1<<18)-(nb_block+1));
+  h = hs48(second_m,(1<<18),1,0);
+  printf("HASH OF ALL BLOCKS (WITHOUT LEN) -> \t%" PRIx64 "\n",h);
+
+  free(second_m);
+
+  if(h==0xFF3FD9D23B89)
+    printf(GREEN "\n\tEX2Q2 VALID.\n\n" RESET);
+  else
+    printf(RED "\n\tEX2Q2 FAIL.\n\n" RESET);
 }
 
 void attack(int ram)
@@ -358,6 +418,7 @@ void attack(int ram)
     mess[1] = 0;
     mess[2] = 0;
     mess[3] = 0;
+
     h=cs48_dm(mess, h);
     f = root;
     for(size_t j = 0; j<12; j++){
@@ -369,9 +430,13 @@ void attack(int ram)
         f->l[valHexa] = calloc(1,sizeof(struct node*));
 
       f = f->l[valHexa];
-      if(j==11)
-        for (size_t i = 0; i < 4; i++)
+      printf("%d\n",111 );
+      if(j==11){
+        for (size_t i = 0; i < 4; i++){
           f->preimage[i] = mess[i];
+        }
+      }
+
     }
   }
 
