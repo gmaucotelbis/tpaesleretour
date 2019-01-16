@@ -412,7 +412,7 @@ void attack()
     }
    if(find==12){
       printf("FIND_ATTACK\n");
-      printf("Loop variable: %ld",i);
+      printf("Loop variable: %ld\n",i);
       nb_block = f->nb_block;
       end = clock();
       time_spent = (double)(end - begin) / CLOCKS_PER_SEC;
