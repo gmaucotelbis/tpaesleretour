@@ -26,11 +26,11 @@ ex1q4:ex1q4.c clean
 
 ex2q1:ex2q1.c clean
 	gcc ex2q1.c -o ex2q1 $(FILES) $(FLAGS)
-	./ex2q1 $$RAM
+	./ex2q1
 
 ex2q2:ex2q2.c clean
 	gcc ex2q2.c -o ex2q2 $(FILES) $(FLAGS)
-	./ex2q2 $$RAM
+	./ex2q2
 
 clean:
 	rm -f ex1q1
