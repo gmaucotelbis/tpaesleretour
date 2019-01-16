@@ -1,5 +1,5 @@
 FILES=second_preim_48_fillme.c xoshiro256starstar.c
-FLAGS= -std=c99
+FLAGS= -O3 -std=c99
 .SILENT: ex1 ex1q1 ex1q2 ex1q3 ex1q4
 
 all: ex1 ex2
