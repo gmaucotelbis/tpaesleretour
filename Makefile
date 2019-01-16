@@ -1,6 +1,11 @@
 FILES=second_preim_48_fillme.c xoshiro256starstar.c
+<<<<<<< HEAD
 FLAGS= -std=c99 -O3
 .SILENT: ex1 ex1q1 ex1q2 ex1q3 ex1q4 clean
+=======
+FLAGS= -O3 -std=c99
+.SILENT: ex1 ex1q1 ex1q2 ex1q3 ex1q4
+>>>>>>> 878bfc87ff5d700ab719f02b4479d4eff095737d
 
 all: ex1 ex2
 

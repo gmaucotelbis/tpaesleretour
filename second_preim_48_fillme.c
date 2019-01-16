@@ -16,20 +16,6 @@ void printtab(uint32_t* tab, int size){
   printf("\n");
 }
 
-void free_tree_attack(struct node_attack* n){
-  int i = 0;
-  if(n){
-    if(n->l){
-      while(i<16){
-        free_tree_attack(n->l[i]);
-        i++;
-      }
-      free(n->l);
-    }
-    free(n);
-  }
-}
-
 void free_tree(struct node* n){
   int i = 0;
   if(n){
@@ -231,15 +217,14 @@ int test_cs48_dm_fp(void){
 /* Finds a two-block expandable message for hs48, using a fixed-point
  * That is, computes m1, m2 s.t. hs48_nopad(m1||m2) = hs48_nopad(m1||m2^*),
  * where hs48_nopad is hs48 with no padding */
-void find_exp_mess(uint32_t m1[4], uint32_t m2[4], int ram){
+void find_exp_mess(uint32_t m1[4], uint32_t m2[4]){
   struct node* root = calloc(1,sizeof(struct node*));
   struct node* f;
 
   uint64_t hin = 0;
   uint32_t m1r[4], m2r[4];
   uint64_t m2_0, m2_1, m1_0, m1_1, hash;
-  __my_little_xoshiro256starstar_unseeded_init();
-  for (uint64_t i = 0; i< (1<<ram); i++){
+  for (uint64_t i = 0; i< (1<<22); i++){
     m1_0 = xoshiro256starstar_random();
     m1_1 = xoshiro256starstar_random();
     m1r[0] =m1_0&0xFFFFFF;
@@ -267,11 +252,14 @@ void find_exp_mess(uint32_t m1[4], uint32_t m2[4], int ram){
       }
     }
   }
+<<<<<<< HEAD
   __my_little_xoshiro256starstar_unseeded_init();
+=======
+>>>>>>> 878bfc87ff5d700ab719f02b4479d4eff095737d
   for (uint64_t i = 0; i < (1UL<<48); i++){
     m2_0 = xoshiro256starstar_random();
     m2_1 = xoshiro256starstar_random();
-    m2r[0] =m2_0&0xFFFFFF;
+    m2r[0] =(uint32_t)m2_0&0xFFFFFF;
     m2r[1] =(m2_0>>24)&0xFFFFFF;
     m2r[2] =m2_1&0xFFFFFF;
     m2r[3] =(m2_1>>24)&0xFFFFFF;
@@ -303,10 +291,10 @@ void find_exp_mess(uint32_t m1[4], uint32_t m2[4], int ram){
   }
 }
 
-int test_em(int ram){
+int test_em(){
   uint32_t m1[4];
   uint32_t m2[4];
-  find_exp_mess(m1,m2,ram);
+  find_exp_mess(m1,m2);
   printf("\tMESSAGE: \n");
   printtab(m1,4);
   printf("\tFIXED POINT: \n");
@@ -353,13 +341,13 @@ void attack(int ram)
   uint64_t h = IV;
   uint32_t m1[4], fp[4], mess[4];
   clock_t begin = clock();
-  find_exp_mess(m1,fp,ram);
+  find_exp_mess(m1,fp);
   clock_t end = clock();
   double time_spent = (double)(end - begin) / CLOCKS_PER_SEC;
   printf("%s%f\n","TIME EXPANDABLE: ", time_spent);
   begin = clock();
-  struct node_attack* root = calloc(1,sizeof(struct node_attack*));
-  struct node_attack* f;
+  struct node* root = calloc(1,sizeof(struct node*));
+  struct node* f;
 
   //On calcule et stock les différents hash possible pour le long message mess...
   for (int i = 0; i < (1 << 20); i+=4){
@@ -372,20 +360,20 @@ void attack(int ram)
     for(size_t j = 0; j<12; j++){
       uint8_t valHexa = (((h<<4*j))>>44)&0xF;
       if(f->l==NULL)
-        f->l= calloc(16,sizeof(struct node_attack*));
+        f->l= calloc(16,sizeof(struct node*));
 
       if(f->l[valHexa]==NULL)
-        f->l[valHexa] = calloc(1,sizeof(struct node_attack*));
+        f->l[valHexa] = calloc(1,sizeof(struct node*));
 
       f = f->l[valHexa];
       if(j==11)
-        f->nb_block = i/4;
+        for (size_t i = 0; i < 4; i++)
+          f->preimage[i] = mess[i];
     }
   }
 
   uint64_t m2_0, m2_1;
   uint32_t nb_block;
-  __my_little_xoshiro256starstar_unseeded_init();
   for (uint64_t i = 0; i < (1UL<<48); i++){
     f = root;
     m2_0 = xoshiro256starstar_random();
@@ -412,11 +400,11 @@ void attack(int ram)
     }
    if(find==12){
       printf("FIND_ATTACK\n");
-      nb_block = f->nb_block;
+      nb_block = f->preimage[0];
       end = clock();
       time_spent = (double)(end - begin) / CLOCKS_PER_SEC;
       printf("%s%f\n","TIME COL: ", time_spent);
-      free_tree_attack(root);
+      free(root);
       printf("%s\n","HASH OF THE MESSAGE TO FIND" );
 
       printf("\t%" PRIx64 "\n",0xFF3FD9D23B89);
@@ -465,7 +453,7 @@ void attack(int ram)
         second_m[i + 3] = 0;
       }
 
-      printf("ADD THE REST OF THE MESSAGE : (%lu blocks) \n",(1<<18)-(nb_block+1));
+      printf("ADD THE REST OF THE MESSAGE : (%u blocks) \n",(1<<18)-(nb_block+1));
       h = hs48(second_m,(1<<18),1,0);
       printf("HASH OF ALL BLOCKS (WITHOUT LEN) -> \t%" PRIx64 "\n",h);
 
