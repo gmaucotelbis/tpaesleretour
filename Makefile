@@ -8,6 +8,10 @@ ex1: ex1q1 ex1q2 ex1q3 ex1q4
 
 ex2: ex2q1 ex2q2
 
+example: example.c clean
+	gcc example.c -o example $(FILES) $(FLAGS)
+	./example
+
 ex1q1:ex1q1.c clean
 	gcc ex1q1.c -o ex1q1 $(FILES) $(FLAGS)
 	./ex1q1
@@ -39,4 +43,5 @@ clean:
 	rm -f ex1q4
 	rm -f ex2q1
 	rm -f ex2q2
+	rm -f example
 	rm -f *.o
